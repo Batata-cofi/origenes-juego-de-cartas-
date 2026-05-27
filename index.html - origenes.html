@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orígenes TCG</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5EDD8;
+  --parchment: #EDE0C4;
+  --brown-dark: #2C1810;
+  --brown-mid: #5C3317;
+  --brown-light: #8B5E3C;
+  --brown-warm: #A0522D;
+  --gold: #C8952A;
+  --gold-light: #E8B84B;
+  --green-deep: #1A3A2A;
+  --green-mid: #2D5A3D;
+  --green-bright: #4A8C5C;
+  --red-deep: #6B1A1A;
+  --red-mid: #8B2525;
+  --blue-deep: #1A2A4A;
+  --purple-deep: #3A1A5A;
+  --text-dark: #1C0F08;
+  --shadow: rgba(44,24,16,0.4);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--brown-dark);
+  color: var(--cream);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── BACKGROUND TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(92,51,23,0.3) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(200,149,42,0.1) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Ccircle cx='20' cy='20' r='1.5' fill='%23C8952A' fill-opacity='0.06'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── SCREENS ── */
+.screen { position: relative; z-index: 1; display: none; }
+.screen.active { display: flex; }
+
+/* ══════════════════════════════════════
+   INTRO SCREEN
+══════════════════════════════════════ */
+#screen-intro {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo-wrap {
+  margin-bottom: 2rem;
+}
+.logo-icon {
+  font-size: 4rem;
+  display: block;
+  filter: drop-shadow(0 0 20px rgba(200,149,42,0.5));
+  animation: breathe 3s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(200,149,42,0.4)); }
+  50% { transform: scale(1.04); filter: drop-shadow(0 0 30px rgba(200,149,42,0.7)); }
+}
+
+.game-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 900;
+  color: var(--gold-light);
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-shadow: 0 2px 20px rgba(200,149,42,0.3);
+}
+.game-subtitle {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.4em;
+  color: var(--brown-light);
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.intro-desc {
+  max-width: 500px;
+  font-size: 0.95rem;
+  color: var(--parchment);
+  opacity: 0.8;
+  line-height: 1.7;
+  margin: 1.5rem auto;
+}
+
+/* Arquetipo cards */
+.archetype-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 600px;
+  width: 100%;
+  margin: 1.5rem auto 0;
+}
+.archetype-card {
+  background: linear-gradient(135deg, rgba(92,51,23,0.6), rgba(44,24,16,0.8));
+  border: 1px solid rgba(200,149,42,0.3);
+  border-radius: 12px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.archetype-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent, rgba(200,149,42,0.08));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.archetype-card:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 8px 24px rgba(200,149,42,0.2); }
+.archetype-card:hover::before { opacity: 1; }
+.archetype-card.selected { border-color: var(--gold-light); background: linear-gradient(135deg, rgba(200,149,42,0.2), rgba(92,51,23,0.6)); box-shadow: 0 0 20px rgba(200,149,42,0.3); }
+
+.arch-icon { font-size: 1.8rem; display: block; margin-bottom: 0.5rem; }
+.arch-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--gold-light); }
+.arch-tagline { font-size: 0.75rem; color: var(--brown-light); margin-top: 0.2rem; font-family: 'Barlow Condensed'; letter-spacing: 0.1em; text-transform: uppercase; }
+.arch-desc { font-size: 0.8rem; color: var(--parchment); opacity: 0.75; margin-top: 0.5rem; line-height: 1.5; }
+.arch-bonus { font-size: 0.75rem; color: var(--gold); margin-top: 0.4rem; font-weight: 600; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold), var(--brown-warm));
+  color: var(--brown-dark);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border: none;
+  padding: 0.9rem 2.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(200,149,42,0.3);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(200,149,42,0.5); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ══════════════════════════════════════
+   GAME SCREEN
+══════════════════════════════════════ */
+#screen-game {
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 0.5rem;
+  gap: 0.4rem;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.8rem;
+  background: rgba(44,24,16,0.7);
+  border-radius: 10px;
+  border: 1px solid rgba(200,149,42,0.2);
+  gap: 0.5rem;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.pv-bar-wrap { display: flex; flex-direction: column; gap: 2px; }
+.pv-label { font-family: 'Barlow Condensed'; font-size: 0.7rem; letter-spacing: 0.1em; color: var(--brown-light); text-transform: uppercase; }
+.pv-value { font-family: 'Playfair Display'; font-size: 1.4rem; font-weight: 700; line-height: 1; }
+.pv-value.danger { color: #E55; animation: pulse-danger 1s infinite; }
+.pv-value.comeback { color: var(--gold-light); }
+.pv-value.healthy { color: #7EC87E; }
+@keyframes pulse-danger { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+.comeback-badge {
+  display: none;
+  background: linear-gradient(135deg, #8B1A1A, #C42B2B);
+  color: white;
+  font-family: 'Barlow Condensed';
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  animation: pulse-danger 1s infinite;
+}
+.comeback-badge.active { display: block; }
+
+/* Market track */
+.market-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+.market-label { font-family: 'Barlow Condensed'; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--brown-light); text-transform: uppercase; }
+.market-pips {
+  display: flex;
+  gap: 3px;
+}
+.market-pip {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,149,42,0.3);
+  background: rgba(44,24,16,0.8);
+  transition: all 0.3s;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.market-pip.active { background: var(--gold); border-color: var(--gold-light); box-shadow: 0 0 8px rgba(200,149,42,0.6); }
+.market-value { font-family: 'Playfair Display'; font-size: 1rem; font-weight: 700; color: var(--gold-light); }
+
+/* Turn / phase */
+.turn-info { text-align: right; }
+.turn-label { font-family: 'Barlow Condensed'; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--brown-light); text-transform: uppercase; }
+.phase-badge {
+  font-family: 'Barlow Condensed';
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-top: 2px;
+  display: inline-block;
+}
+.phase-badge.main { background: rgba(74,140,92,0.3); color: #7EC87E; border: 1px solid rgba(74,140,92,0.4); }
+.phase-badge.battle { background: rgba(139,37,37,0.4); color: #E88; border: 1px solid rgba(139,37,37,0.5); }
+.phase-badge.enemy { background: rgba(92,51,23,0.5); color: var(--brown-light); border: 1px solid rgba(92,51,23,0.6); }
+
+/* Deck / graveyard */
+.deck-info {
+  display: flex;
+  gap: 0.4rem;
+}
+.mini-pile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.pile-box {
+  width: 32px;
+  height: 44px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed';
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: 1px solid rgba(200,149,42,0.3);
+}
+.pile-box.deck { background: linear-gradient(135deg, var(--brown-mid), var(--brown-dark)); }
+.pile-box.grave { background: rgba(44,24,16,0.8); color: var(--brown-light); }
+.pile-label { font-size: 0.55rem; color: var(--brown-light); font-family: 'Barlow Condensed'; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ── EVENT BANNER ── */
+.event-banner {
+  background: linear-gradient(135deg, rgba(44,24,16,0.9), rgba(92,51,23,0.7));
+  border: 1px solid rgba(200,149,42,0.4);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.82rem;
+  color: var(--parchment);
+  text-align: center;
+  display: none;
+  animation: slideDown 0.4s ease;
+}
+.event-banner.active { display: block; }
+.event-banner strong { color: var(--gold-light); }
+@keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ── FIELD ── */
+.field-area {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: rgba(26,58,42,0.15);
+  border-radius: 10px;
+  border: 1px solid rgba(74,140,92,0.15);
+}
+
+.finca-slot {
+  border: 1.5px dashed rgba(200,149,42,0.25);
+  border-radius: 10px;
+  min-height: 130px;
+  background: rgba(44,24,16,0.3);
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.finca-slot:hover { border-color: rgba(200,149,42,0.5); background: rgba(44,24,16,0.5); }
+.finca-slot.empty-hint::after { content: 'Tap para jugar'; font-size: 0.65rem; color: rgba(200,149,42,0.4); font-family: 'Barlow Condensed'; letter-spacing: 0.1em; text-transform: uppercase; }
+.finca-slot.valid-target { border: 2px solid #4A8C5C; background: rgba(74,140,92,0.15); animation: pulse-green 1.2s infinite; }
+.finca-slot.valid-attack-target { border: 2px solid #C42B2B; background: rgba(196,43,43,0.12); animation: pulse-red 1.2s infinite; }
+.finca-slot.selected-attacker { border: 2px solid var(--gold); background: rgba(200,149,42,0.12); box-shadow: 0 0 16px rgba(200,149,42,0.3); }
+.finca-slot.mode-tueste { background: rgba(107,26,26,0.25); }
+.finca-slot.mode-cosecha { background: rgba(26,58,42,0.25); }
+
+@keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(74,140,92,0.5)} 50%{box-shadow:0 0 0 6px rgba(74,140,92,0)} }
+@keyframes pulse-red { 0%,100%{box-shadow:0 0 0 0 rgba(196,43,43,0.5)} 50%{box-shadow:0 0 0 6px rgba(196,43,43,0)} }
+@keyframes pulse-gold { 0%,100%{box-shadow:0 0 0 0 rgba(200,149,42,0.5)} 50%{box-shadow:0 0 0 8px rgba(200,149,42,0)} }
+
+/* Finca content */
+.finca-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  gap: 0.25rem;
+}
+.finca-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.3rem;
+}
+.finca-name {
+  font-family: 'Barlow Condensed';
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  flex: 1;
+}
+.finca-fusion-name {
+  font-family: 'Playfair Display';
+  font-size: 0.65rem;
+  color: var(--gold);
+  font-style: italic;
+  line-height: 1.3;
+  flex: 1;
+}
+.mode-btn {
+  font-family: 'Barlow Condensed';
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.mode-btn.tueste { background: rgba(139,37,37,0.7); color: #FFB3B3; border: 1px solid rgba(139,37,37,0.8); }
+.mode-btn.cosecha { background: rgba(45,90,61,0.7); color: #B3FFB3; border: 1px solid rgba(45,90,61,0.8); }
+.mode-btn:disabled { opacity: 0.5; cursor: default; }
+
+.finca-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.tag {
+  font-size: 0.55rem;
+  font-family: 'Barlow Condensed';
+  letter-spacing: 0.05em;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.tag.variedad { background: rgba(107,26,26,0.6); color: #FFB3B3; }
+.tag.beneficio { background: rgba(26,42,74,0.6); color: #B3C8FF; }
+.tag.metodo { background: rgba(92,58,23,0.6); color: #FFD9B3; }
+
+.finca-stats-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: auto;
+}
+.stat {
+  flex: 1;
+  text-align: center;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  padding: 2px;
+}
+.stat-label { font-size: 0.55rem; font-family: 'Barlow Condensed'; letter-spacing: 0.08em; color: var(--brown-light); text-transform: uppercase; }
+.stat-value { font-family: 'Playfair Display'; font-size: 0.9rem; font-weight: 700; line-height: 1; }
+.stat-value.atk { color: #FF8888; }
+.stat-value.def { color: #88BBFF; }
+.stat-value.buffed { color: var(--gold-light); }
+.stat-value.debuffed { color: #FF5555; }
+
+.finca-ability-row {
+  font-size: 0.6rem;
+  color: var(--gold);
+  text-align: center;
+  font-style: italic;
+  padding: 1px 3px;
+  background: rgba(200,149,42,0.08);
+  border-radius: 3px;
+  border: 1px solid rgba(200,149,42,0.2);
+}
+
+/* Face down finca */
+.finca-facedown {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: repeating-linear-gradient(45deg, rgba(92,51,23,0.4), rgba(92,51,23,0.4) 8px, rgba(44,24,16,0.4) 8px, rgba(44,24,16,0.4) 16px);
+  border-radius: 8px;
+}
+.facedown-icon { font-size: 1.5rem; opacity: 0.6; }
+.facedown-def { font-family: 'Barlow Condensed'; font-size: 0.75rem; color: #88BBFF; font-weight: 700; }
+
+/* ── LOG ── */
+.game-log {
+  background: rgba(28,15,8,0.8);
+  border: 1px solid rgba(200,149,42,0.2);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  height: 64px;
+  overflow-y: auto;
+  font-family: 'Barlow Condensed', monospace;
+  font-size: 0.75rem;
+  color: var(--parchment);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+.game-log p { opacity: 0.75; }
+.game-log p:last-child { opacity: 1; color: var(--gold-light); }
+
+/* ── PLAYER AREA ── */
+.player-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Action bar */
+.action-bar {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-action {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-action:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+.btn-battle { background: rgba(139,37,37,0.3); color: #FFB3B3; border-color: rgba(139,37,37,0.6); }
+.btn-battle:not(:disabled):hover { background: rgba(139,37,37,0.6); transform: translateY(-1px); }
+.btn-end { background: rgba(26,42,74,0.3); color: #B3C8FF; border-color: rgba(26,42,74,0.6); }
+.btn-end:not(:disabled):hover { background: rgba(26,42,74,0.6); transform: translateY(-1px); }
+.btn-mulligan { background: rgba(92,51,23,0.4); color: var(--gold-light); border-color: rgba(200,149,42,0.4); }
+.btn-mulligan:not(:disabled):hover { background: rgba(92,51,23,0.7); transform: translateY(-1px); }
+.btn-cancel { background: rgba(44,24,16,0.6); color: var(--parchment); border-color: rgba(200,149,42,0.2); }
+.btn-cancel:not(:disabled):hover { background: rgba(92,51,23,0.5); transform: translateY(-1px); }
+
+.action-hint {
+  width: 100%;
+  text-align: center;
+  font-family: 'Barlow Condensed';
+  font-size: 0.75rem;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  min-height: 1.1rem;
+}
+
+/* ── HAND ── */
+.hand-area {
+  position: relative;
+  min-height: 110px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 0.3rem;
+}
+
+.hand-cards {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: -20px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 0.5rem 0.5rem 0;
+  max-width: 100%;
+  scrollbar-width: thin;
+}
+
+.hand-card {
+  position: relative;
+  width: 68px;
+  height: 95px;
+  border-radius: 7px;
+  border: 1.5px solid rgba(200,149,42,0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: -14px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem;
+  gap: 0.15rem;
+  overflow: hidden;
+  user-select: none;
+}
+.hand-card:first-child { margin-left: 0; }
+.hand-card:hover { transform: translateY(-16px) scale(1.08); z-index: 20; margin-left: -14px; }
+.hand-card.selected-hand {
+  transform: translateY(-20px) scale(1.1);
+  border-color: var(--gold-light);
+  box-shadow: 0 0 16px rgba(200,149,42,0.5), 0 8px 20px rgba(0,0,0,0.4);
+  z-index: 25;
+}
+.hand-card.playable-hint {
+  border-color: rgba(74,140,92,0.6);
+  box-shadow: 0 0 8px rgba(74,140,92,0.2);
+}
+
+/* Card color themes */
+.card-origen { background: linear-gradient(160deg, var(--green-deep), #0D2218); }
+.card-variedad { background: linear-gradient(160deg, var(--red-deep), #3A0A0A); }
+.card-beneficio { background: linear-gradient(160deg, var(--blue-deep), #0D1628); }
+.card-metodo { background: linear-gradient(160deg, #3A2A0A, #1E1408); }
+.card-accion { background: linear-gradient(160deg, var(--purple-deep), #1E0A2E); }
+.card-lote {
+  box-shadow: 0 0 12px rgba(200,149,42,0.4) inset;
+  border-color: var(--gold) !important;
+}
+
+.hcard-type {
+  font-family: 'Barlow Condensed';
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.hcard-name {
+  font-family: 'Barlow Condensed';
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--cream);
+  flex: 1;
+}
+.hcard-special { font-size: 0.55rem; color: var(--gold); }
+.hcard-stats {
+  font-family: 'Barlow Condensed';
+  font-size: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  color: var(--parchment);
+  opacity: 0.8;
+}
+.hcard-text { font-size: 0.5rem; color: rgba(245,237,216,0.5); line-height: 1.3; }
+
+/* Tooltip */
+.hcard-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(28,15,8,0.98);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  width: 160px;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+.hand-card:hover .hcard-tooltip,
+.hand-card.selected-hand .hcard-tooltip { display: block; }
+.tooltip-name { font-family: 'Playfair Display'; font-size: 0.8rem; font-weight: 700; color: var(--gold-light); margin-bottom: 3px; }
+.tooltip-type { font-family: 'Barlow Condensed'; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brown-light); margin-bottom: 4px; }
+.tooltip-text { font-size: 0.72rem; color: var(--parchment); line-height: 1.5; }
+.tooltip-stats { font-family: 'Barlow Condensed'; font-size: 0.7rem; color: var(--gold); margin-top: 4px; font-weight: 600; }
+
+/* ── AI AREA ── */
+.ai-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.5rem;
+  background: rgba(44,24,16,0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(92,51,23,0.3);
+}
+.ai-hand-count {
+  font-family: 'Barlow Condensed';
+  font-size: 0.75rem;
+  color: var(--brown-light);
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+.ai-card-back {
+  width: 20px;
+  height: 28px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(45deg, rgba(92,51,23,0.8), rgba(92,51,23,0.8) 4px, rgba(44,24,16,0.8) 4px, rgba(44,24,16,0.8) 8px);
+  border: 1px solid rgba(200,149,42,0.2);
+  margin-right: -14px;
+}
+.ai-card-back:first-child { margin-right: 0; }
+
+/* ── MODALS ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: linear-gradient(160deg, #2C1810, #1A0E08);
+  border: 1px solid rgba(200,149,42,0.4);
+  border-radius: 16px;
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  animation: modalIn 0.3s ease;
+}
+@keyframes modalIn { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+.modal-title { font-family: 'Playfair Display'; font-size: 1.5rem; font-weight: 700; color: var(--gold-light); margin-bottom: 0.5rem; }
+.modal-text { font-size: 0.9rem; color: var(--parchment); opacity: 0.85; line-height: 1.6; margin-bottom: 1rem; }
+.modal-actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+
+/* Play modal — card selection UI */
+.play-targets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+}
+.play-target-btn {
+  background: rgba(92,51,23,0.3);
+  border: 1px solid rgba(200,149,42,0.3);
+  border-radius: 8px;
+  padding: 0.6rem 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Barlow Condensed';
+  font-size: 0.75rem;
+  color: var(--parchment);
+  text-align: center;
+}
+.play-target-btn:hover { background: rgba(200,149,42,0.2); border-color: var(--gold); }
+.play-target-btn .slot-num { font-family: 'Playfair Display'; font-size: 1.1rem; font-weight: 700; color: var(--gold-light); display: block; }
+.play-target-btn .slot-status { font-size: 0.65rem; opacity: 0.6; }
+
+/* Mulligan */
+.mulligan-cards { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin: 0.8rem 0; }
+.mulligan-card {
+  width: 60px;
+  height: 84px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(200,149,42,0.3);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem;
+  gap: 0.15rem;
+  font-size: 0.6rem;
+  transition: all 0.2s;
+}
+.mulligan-card.marked { border-color: #E55; opacity: 0.5; transform: scale(0.95); }
+
+/* Damage flash */
+.damage-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 500;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.damage-flash.player-hit { background: radial-gradient(ellipse at bottom, rgba(255,50,50,0.3), transparent 60%); }
+.damage-flash.ai-hit { background: radial-gradient(ellipse at top, rgba(50,255,100,0.15), transparent 60%); }
+.damage-flash.active { opacity: 1; animation: flashOut 0.5s ease forwards; }
+@keyframes flashOut { 0%{opacity:1} 100%{opacity:0} }
+
+/* End modal */
+#end-modal { text-align: center; }
+.end-icon { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(44,24,16,0.3); }
+::-webkit-scrollbar-thumb { background: rgba(200,149,42,0.4); border-radius: 2px; }
+
+</style>
+</head>
+<body>
+
+<!-- DAMAGE FLASH -->
+<div class="damage-flash" id="dmg-flash"></div>
+
+<!-- INTRO SCREEN -->
+<div class="screen active" id="screen-intro">
+  <div class="logo-wrap">
+    <span class="logo-icon">☕</span>
+    <div class="game-title">ORÍGENES</div>
+    <div class="game-subtitle">El Juego de Cartas del Café</div>
+  </div>
+  <p class="intro-desc">Cultivá tu filosofía cafetera. Cada finca que construís es un argumento sobre calidad, terroir y proceso. El mercado fluctúa, el clima sorprende — pero tus principios son tu mazo.</p>
+
+  <p style="font-family:'Barlow Condensed';font-size:0.8rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--brown-light);margin-bottom:0.8rem;">Elegí tu arquetipo</p>
+
+  <div class="archetype-grid">
+    <div class="archetype-card" data-arch="terroir" onclick="G.selectArch(this)">
+      <span class="arch-icon">🌱</span>
+      <div class="arch-name">Terroir</div>
+      <div class="arch-tagline">La tierra lo es todo</div>
+      <div class="arch-desc">Paciencia y territorio. Tus orígenes son más fuertes y tus fincas más resistentes al clima.</div>
+      <div class="arch-bonus">+20 DEF en Orígenes propios · Fusiones más baratas</div>
+    </div>
+    <div class="archetype-card" data-arch="procesador" onclick="G.selectArch(this)">
+      <span class="arch-icon">⚗️</span>
+      <div class="arch-name">Procesador</div>
+      <div class="arch-tagline">El proceso define la taza</div>
+      <div class="arch-desc">Transformás lo ordinario en extraordinario. Tus beneficios producen efectos dobles.</div>
+      <div class="arch-bonus">Beneficios dan doble estadística · Desbloquea procesos raros</div>
+    </div>
+    <div class="archetype-card" data-arch="artesano" onclick="G.selectArch(this)">
+      <span class="arch-icon">✂️</span>
+      <div class="arch-name">Artesano</div>
+      <div class="arch-tagline">La variedad es arte</div>
+      <div class="arch-desc">Cada variedad que combinás multiplica tu potencia ofensiva. Explosivo y arriesgado.</div>
+      <div class="arch-bonus">Combo de variedades da +ATK · Puede jugar 4 variedades</div>
+    </div>
+    <div class="archetype-card" data-arch="comerciante" onclick="G.selectArch(this)">
+      <span class="arch-icon">📊</span>
+      <div class="arch-name">Comerciante</div>
+      <div class="arch-tagline">El mercado es tu campo</div>
+      <div class="arch-desc">Leés el mercado antes que nadie. Tus ataques directos escalan con el precio del café.</div>
+      <div class="arch-bonus">Ataque directo +50% en precio alto · Manipula el track</div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="btn-start" disabled onclick="G.startGame()">Comenzar Partida</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen" id="screen-game">
+
+  <!-- Top bar: AI info -->
+  <div class="top-bar">
+    <div class="player-info">
+      <div class="deck-info" id="ai-deck-area"></div>
+      <div>
+        <div class="pv-label">Oponente</div>
+        <div class="pv-value" id="ai-pv-display">800</div>
+      </div>
+      <div class="ai-hand-count" id="ai-hand-display"></div>
+    </div>
+
+    <div class="market-track">
+      <div class="market-label">Mercado</div>
+      <div class="market-pips" id="market-pips"></div>
+      <div class="market-value" id="market-value">☕3</div>
+    </div>
+
+    <div class="turn-info">
+      <div class="turn-label" id="turn-label">Tu Turno</div>
+      <div class="phase-badge main" id="phase-badge">Principal</div>
+    </div>
+  </div>
+
+  <!-- Event banner -->
+  <div class="event-banner" id="event-banner"></div>
+
+  <!-- AI Field -->
+  <div class="field-area" id="ai-field">
+    <div class="finca-slot" data-owner="ai" data-index="0" onclick="G.onSlotClick('ai',0)"></div>
+    <div class="finca-slot" data-owner="ai" data-index="1" onclick="G.onSlotClick('ai',1)"></div>
+    <div class="finca-slot" data-owner="ai" data-index="2" onclick="G.onSlotClick('ai',2)"></div>
+  </div>
+
+  <!-- Log -->
+  <div class="game-log" id="game-log"></div>
+
+  <!-- Player Field -->
+  <div class="field-area" id="player-field">
+    <div class="finca-slot" data-owner="player" data-index="0" onclick="G.onSlotClick('player',0)"></div>
+    <div class="finca-slot" data-owner="player" data-index="1" onclick="G.onSlotClick('player',1)"></div>
+    <div class="finca-slot" data-owner="player" data-index="2" onclick="G.onSlotClick('player',2)"></div>
+  </div>
+
+  <!-- Player stats -->
+  <div class="top-bar">
+    <div class="player-info">
+      <div class="deck-info" id="player-deck-area"></div>
+      <div>
+        <div class="pv-label" id="player-arch-label">Productor</div>
+        <div class="pv-value healthy" id="player-pv-display">800</div>
+      </div>
+      <div class="comeback-badge" id="comeback-badge">🔥 Comeback</div>
+    </div>
+    <div class="action-bar">
+      <span class="action-hint" id="action-hint"></span>
+      <button class="btn-action btn-mulligan" id="btn-mulligan" onclick="G.openMulligan()" disabled>Mulligan</button>
+      <button class="btn-action btn-battle" id="btn-battle" onclick="G.goToBattle()">⚔ Batalla</button>
+      <button class="btn-action btn-end" id="btn-end" onclick="G.endPlayerTurn()">Terminar →</button>
+      <button class="btn-action btn-cancel" id="btn-cancel" onclick="G.cancelAction()" style="display:none">✕ Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Hand -->
+  <div class="hand-area">
+    <div class="hand-cards" id="hand-cards"></div>
+  </div>
+
+</div>
+
+<!-- MODAL: Play Card -->
+<div class="modal-overlay" id="modal-play">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-play-title">Jugar Carta</div>
+    <div class="modal-text" id="modal-play-desc"></div>
+    <div class="play-targets" id="modal-play-targets"></div>
+    <div class="modal-actions">
+      <button class="btn-action btn-cancel" onclick="G.closePlayModal()">✕ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Mulligan -->
+<div class="modal-overlay" id="modal-mulligan">
+  <div class="modal-box">
+    <div class="modal-title">Mulligan de Emergencia</div>
+    <div class="modal-text">Marcá las cartas que querés cambiar (máx 3). Las marcadas vuelven al mazo y robás nuevas.</div>
+    <div class="mulligan-cards" id="mulligan-cards"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="G.confirmMulligan()">Confirmar</button>
+      <button class="btn-action btn-cancel" onclick="G.closeMulligan()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: End Game -->
+<div class="modal-overlay" id="end-modal">
+  <div class="modal-box" id="end-modal-box" style="text-align:center">
+    <span class="end-icon" id="end-icon">🏆</span>
+    <div class="modal-title" id="end-title"></div>
+    <div class="modal-text" id="end-text"></div>
+    <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--gold);font-family:'Barlow Condensed';letter-spacing:0.1em;" id="end-stats"></div>
+    <div class="modal-actions" style="margin-top:1rem">
+      <button class="btn-primary" onclick="location.reload()">Nueva Partida</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CARD DATABASE
+// ═══════════════════════════════════════════════════════
+const CARDS = {
+  // ORÍGENES
+  'ori-col': {id:'ori-col',type:'Origen',name:'Colombia Sierra Nevada',atk:5,def:20,text:'Defensa sólida de montaña.',region:'americas'},
+  'ori-bra': {id:'ori-bra',type:'Origen',name:'Brasil Cerrado Mineiro',atk:10,def:15,text:'Equilibrio natural.',region:'americas'},
+  'ori-eth': {id:'ori-eth',type:'Origen',name:'Etiopía Yirgacheffe',atk:0,def:25,text:'Cuna del café. Defensa máxima.',region:'africa'},
+  'ori-ken': {id:'ori-ken',type:'Origen',name:'Kenia Nyeri',atk:15,def:10,text:'Acidez brillante, buen ataque.',region:'africa'},
+  'ori-yem': {id:'ori-yem',type:'Origen',name:'Yemen Matari',lote:true,atk:10,def:30,text:'⭐ Una vez por turno: pagá 50 PV para robar una carta.',region:'asia',ability:'yemen'},
+  'ori-col2': {id:'ori-col2',type:'Origen',name:'Colombia Nariño',atk:8,def:18,text:'Altitud extrema. Gran balance.',region:'americas'},
+  'ori-gua': {id:'ori-gua',type:'Origen',name:'Guatemala Antigua',atk:12,def:14,text:'Volcánico. Atacá con historia.',region:'americas'},
+  'ori-per': {id:'ori-per',type:'Origen',name:'Perú Cajamarca',atk:5,def:22,text:'Suave y protegido.',region:'americas'},
+  'ori-rwa': {id:'ori-rwa',type:'Origen',name:'Ruanda Bourbon',atk:8,def:18,text:'Frutas rojas densas.',region:'africa'},
+  'ori-sum': {id:'ori-sum',type:'Origen',name:'Sumatra Mandheling',atk:12,def:16,text:'Cuerpo intenso del archipiélago.',region:'asia'},
+  // VARIEDADES
+  'var-bou': {id:'var-bou',type:'Variedad',name:'Bourbon',atk:25,def:5,text:'Clásico ofensivo.'},
+  'var-typ': {id:'var-typ',type:'Variedad',name:'Typica',atk:20,def:10,text:'Ataque con resistencia.'},
+  'var-cat': {id:'var-cat',type:'Variedad',name:'Caturra',atk:30,def:0,text:'Explosivo, sin defensa.'},
+  'var-pac': {id:'var-pac',type:'Variedad',name:'Pacamara',atk:35,def:0,text:'Gran potencia ofensiva.'},
+  'var-gei': {id:'var-gei',type:'Variedad',name:'Geisha Esmeralda',lote:true,atk:45,def:5,text:'⭐ Al jugarla: robás una carta extra.',ability:'geisha'},
+  'var-sl2': {id:'var-sl2',type:'Variedad',name:'SL-28',atk:35,def:5,text:'Acidez cítrica, ataque preciso.'},
+  'var-rob': {id:'var-rob',type:'Variedad',name:'Canephora Robusta',atk:5,def:35,text:'Defensa descomunal.'},
+  'var-tim': {id:'var-tim',type:'Variedad',name:'Híbrido de Timor',atk:20,def:20,text:'Balance perfecto.'},
+  'var-mar': {id:'var-mar',type:'Variedad',name:'Maragogipe',atk:40,def:0,text:'Grano gigante, impacto máximo.'},
+  'var-cas': {id:'var-cas',type:'Variedad',name:'Castillo',atk:22,def:12,text:'Resistente y confiable.'},
+  // BENEFICIOS / PROCESOS
+  'ben-lav': {id:'ben-lav',type:'Beneficio',name:'Lavado 48hs',atk:0,def:15,text:'Limpieza y claridad.'},
+  'ben-nat': {id:'ben-nat',type:'Beneficio',name:'Natural',atk:10,def:5,text:'Dulzura de fruta madura.'},
+  'ben-hon': {id:'ben-hon',type:'Beneficio',name:'Honey',atk:5,def:10,text:'Equilibrio dulce.'},
+  'ben-ana': {id:'ben-ana',type:'Beneficio',name:'Doble Fermentación',lote:true,atk:10,def:25,text:'⭐ Al destruir una finca: recuperás 50 PV.',ability:'anaerobico'},
+  'ben-aer': {id:'ben-aer',type:'Beneficio',name:'Fermentación Aeróbica',atk:10,def:10,text:'Balance acido-suave.'},
+  'ben-lac': {id:'ben-lac',type:'Beneficio',name:'Fermentación Láctica',atk:0,def:25,text:'Cuerpo cremoso, defensa sólida.'},
+  'ben-ace': {id:'ben-ace',type:'Beneficio',name:'Fermentación Acética',atk:15,def:0,text:'Perfil agresivo de alto riesgo.'},
+  'ben-car': {id:'ben-car',type:'Beneficio',name:'Maceración Carbónica',atk:5,def:20,text:'Estructura vinificada.'},
+  // MÉTODOS
+  'met-v60': {id:'met-v60',type:'Método',name:'V60 Dripper',atk:20,def:0,text:'Ataque limpio y preciso.'},
+  'met-fre': {id:'met-fre',type:'Método',name:'Prensa Francesa',atk:15,def:5,text:'Cuerpo con resistencia.'},
+  'met-aer': {id:'met-aer',type:'Método',name:'Aeropress',atk:25,def:0,text:'Inyección de ataque.'},
+  'met-sip': {id:'met-sip',type:'Método',name:'Sifón Japonés',lote:true,atk:35,def:0,text:'⭐ Ignora 10 DEF del objetivo.',ability:'siphon'},
+  'met-che': {id:'met-che',type:'Método',name:'Chemex',atk:20,def:5,text:'Ataque pulcro y consistente.'},
+  'met-tur': {id:'met-tur',type:'Método',name:'Turco Ibrik',atk:30,def:0,text:'Denso y rústico.'},
+  'met-col': {id:'met-col',type:'Método',name:'Cold Brew',atk:15,def:10,text:'Extracción lenta, cuerpo pesado.'},
+  // ACCIONES
+  'acc-llu': {id:'acc-llu',type:'Acción',name:'Lluvias Incontenibles',atk:0,def:0,text:'Todas las fincas enemigas pierden 20 DEF este turno.'},
+  'acc-hum': {id:'acc-hum',type:'Acción',name:'Buena Humedad',atk:0,def:0,text:'Todas tus fincas ganan +20 ATK este turno.'},
+  'acc-tos': {id:'acc-tos',type:'Acción',name:'Tostado Rápido',atk:0,def:0,text:'Robás 2 cartas de tu mazo.'},
+  'acc-cos': {id:'acc-cos',type:'Acción',name:'Cosecha Sorpresa',atk:0,def:0,text:'Recuperás 100 PV directos.'},
+  'acc-pla': {id:'acc-pla',type:'Acción',name:'Plaga Inesperada',atk:0,def:0,text:'La finca más fuerte del oponente pierde todos sus anexos.'},
+  'acc-mer': {id:'acc-mer',type:'Acción',name:'Especulación',atk:0,def:0,text:'Subís el mercado 1 punto. Si está en 5, bajás el de tu rival.'},
+  'acc-seg': {id:'acc-seg',type:'Acción',name:'Seguro de Cosecha',atk:0,def:0,text:'La próxima finca que pierdas: recuperás 80 PV extra.'},
+};
+
+// ═══════════════════════════════════════════════════════
+//  FUSIONES
+// ═══════════════════════════════════════════════════════
+const FUSIONS = {
+  'fus-floral': { name:'Aroma Floral Intenso', recipe:new Set(['ori-eth','ben-lav','var-gei']), abilityText:'Al atacar, el rival no puede activar Acciones.', bonusAtk:30, bonusDef:30 },
+  'fus-robusta': { name:'Cuerpo Robusto Brasileño', recipe:new Set(['ori-bra','ben-nat','met-fre']), abilityText:'Una vez por turno, no puede ser destruida en batalla.', bonusAtk:30, bonusDef:30 },
+  'fus-origen': { name:'Taza de Origen Puro', recipe:new Set(['ori-eth','ben-lav','met-v60']), abilityText:'Cada turno que sobrevive: +15 ATK y DEF acumulativo.', bonusAtk:25, bonusDef:35 },
+  'fus-mercado': { name:'Blend de Exportación', recipe:new Set(['ori-col','var-bou','met-che']), abilityText:'Cada ataque sube el mercado 1 punto.', bonusAtk:35, bonusDef:25 },
+};
+
+// ═══════════════════════════════════════════════════════
+//  EVENTOS REALES DEL MERCADO CAFÉ
+// ═══════════════════════════════════════════════════════
+const EVENTS = [
+  { id:'helada-eth', icon:'🧊', name:'Helada en Etiopía', text:'Las fincas africanas pierden 15 DEF este turno.', effect:'helada-africa', marketDelta:-1 },
+  { id:'boom-esp', icon:'📈', name:'Boom de Especialidad', text:'El mercado sube 2 puntos. Las variedades premium dan +10 ATK.', effect:'boom', marketDelta:2 },
+  { id:'broca', icon:'🦟', name:'Broca del Café', text:'Una finca aleatoria de cada jugador pierde 1 Beneficio.', effect:'broca', marketDelta:0 },
+  { id:'concurso', icon:'🏆', name:'Concurso de Baristas', text:'El jugador con la finca de mayor calidad (ATK+DEF) gana 80 PV.', effect:'concurso', marketDelta:1 },
+  { id:'crisis', icon:'📉', name:'Crisis Commodities', text:'El mercado baja 3 puntos. Nadie puede atacar este turno.', effect:'crisis', marketDelta:-3 },
+  { id:'temporada', icon:'🌱', name:'Temporada Alta', text:'Ambos jugadores roban 2 cartas extra.', effect:'temporada', marketDelta:1 },
+  { id:'frost-bra', icon:'❄️', name:'Frost en Brasil', text:'Las fincas americanas pierden 10 DEF este turno.', effect:'helada-americas', marketDelta:-1 },
+  { id:'ruta-seda', icon:'🚢', name:'Ruta de los Sabores', text:'El jugador con más Orígenes en juego gana 100 PV.', effect:'ruta', marketDelta:0 },
+  { id:'lluvia-oportuna', icon:'🌧️', name:'Lluvia Oportuna', text:'Todas las fincas en Cosecha ganan +15 DEF hasta el próximo turno.', effect:'lluvia', marketDelta:0 },
+  { id:'caficultor', icon:'👨‍🌾', name:'Caficultor del Año', text:'El arquetipo Terroir gana 120 PV. Los demás, 40 PV.', effect:'caficultor', marketDelta:1 },
+];
+
+// ═══════════════════════════════════════════════════════
+//  MAZOS TEMÁTICOS POR ARQUETIPO
+// ═══════════════════════════════════════════════════════
+const ARCHETYPE_DECKS = {
+  terroir: {
+    label:'🌱 Terroir',
+    deck: [
+      'ori-eth','ori-eth','ori-col','ori-col','ori-col2','ori-col2','ori-rwa','ori-rwa','ori-per','ori-per',
+      'ben-lav','ben-lav','ben-lac','ben-lac','ben-car','ben-car','ben-hon','ben-hon',
+      'var-rob','var-rob','var-typ','var-typ','var-tim','var-tim','var-cas','var-cas',
+      'met-v60','met-che','met-col','met-col',
+      'acc-llu','acc-hum','acc-cos','acc-cos','acc-seg','acc-seg',
+      'var-gei','ben-ana'
+    ]
+  },
+  procesador: {
+    label:'⚗️ Procesador',
+    deck: [
+      'ori-col','ori-col','ori-ken','ori-ken','ori-bra','ori-bra','ori-gua','ori-gua',
+      'ben-ana','ben-ana','ben-aer','ben-aer','ben-hon','ben-hon','ben-ace','ben-ace','ben-lac','ben-nat','ben-nat',
+      'var-bou','var-bou','var-cat','var-tim','var-pac',
+      'met-aer','met-aer','met-fre','met-fre','met-v60',
+      'acc-llu','acc-hum','acc-tos','acc-tos','acc-cos','acc-pla','acc-mer',
+      'var-gei'
+    ]
+  },
+  artesano: {
+    label:'✂️ Artesano',
+    deck: [
+      'ori-ken','ori-ken','ori-bra','ori-bra','ori-gua','ori-gua','ori-col','ori-sum','ori-sum',
+      'ben-nat','ben-nat','ben-ace','ben-ace','ben-aer','ben-hon',
+      'var-cat','var-cat','var-pac','var-pac','var-mar','var-mar','var-sl2','var-sl2','var-bou','var-bou','var-gei',
+      'met-tur','met-tur','met-aer','met-aer','met-sip',
+      'acc-hum','acc-hum','acc-tos','acc-pla','acc-mer','acc-mer',
+    ]
+  },
+  comerciante: {
+    label:'📊 Comerciante',
+    deck: [
+      'ori-col','ori-col','ori-bra','ori-bra','ori-sum','ori-sum','ori-yem',
+      'ben-hon','ben-hon','ben-nat','ben-aer','ben-lav',
+      'var-bou','var-typ','var-sl2','var-tim','var-cas','var-cas',
+      'met-sip','met-tur','met-aer','met-che','met-che','met-v60',
+      'acc-llu','acc-llu','acc-hum','acc-hum','acc-tos','acc-tos','acc-cos','acc-cos','acc-pla','acc-pla','acc-mer','acc-mer','acc-seg',
+      'ben-ana'
+    ]
+  }
+};
+
+const AI_DECKS = {
+  junior: ARCHETYPE_DECKS.terroir,
+  barista: ARCHETYPE_DECKS.procesador,
+  tostador: ARCHETYPE_DECKS.artesano,
+  agronomo: ARCHETYPE_DECKS.comerciante,
+};
+
+// ═══════════════════════════════════════════════════════
+//  GAME ENGINE
+// ═══════════════════════════════════════════════════════
+const G = {
+  state: null,
+  selectedHandIndex: null,
+  attackerRef: null,
+  mulliganUsed: false,
+  mulliganMarked: [],
+  noAttackThisTurn: false,
+
+  // ── SETUP ──
+  selectArch(el) {
+    document.querySelectorAll('.archetype-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('btn-start').disabled = false;
+    this._selectedArch = el.dataset.arch;
+  },
+
+  startGame() {
+    const arch = this._selectedArch;
+    document.getElementById('screen-intro').classList.remove('active');
+    document.getElementById('screen-game').classList.add('active');
+    document.getElementById('player-arch-label').textContent = ARCHETYPE_DECKS[arch].label;
+
+    this.state = {
+      player: { pv:800, deck:[], hand:[], graveyard:[], arch, fincas:[null,null,null], tempAtk:0, tempDef:0, slotsUsed:[0,0,0], hasInsurance:false, vendidos:0 },
+      ai: { pv:800, deck:[], hand:[], graveyard:[], arch:'agronomo', fincas:[null,null,null], tempAtk:0, tempDef:0, slotsUsed:[0,0,0], hasInsurance:false, vendidos:0 },
+      turn: 'player',
+      phase: 'main',
+      turnCount: 1,
+      market: 3,
+      processing: false,
+      crisisActive: false,
+      rainActive: false,
+      eventFreezeAfrica: 0,
+      eventFreezeAmericas: 0,
+    };
+
+    this.state.player.deck = this.shuffle([...ARCHETYPE_DECKS[arch].deck]);
+    this.state.ai.deck = this.shuffle([...AI_DECKS['agronomo'].deck]);
+
+    for(let i=0;i<5;i++) { this.drawCard('player',false); this.drawCard('ai',false); }
+
+    this.log(`¡Partida comenzada! Sos ${ARCHETYPE_DECKS[arch].label}. Turnos 1-3: paz para construir.`);
+    this.render();
+  },
+
+  shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr; },
+
+  // ── RENDER ──
+  render() {
+    const s = this.state;
+    if(!s) return;
+
+    // PV displays
+    const pp = s.player.pv, ap = s.ai.pv;
+    const pvEl = document.getElementById('player-pv-display');
+    pvEl.textContent = pp;
+    pvEl.className = 'pv-value ' + (pp < 300 ? 'danger' : pp < 400 ? 'comeback' : 'healthy');
+    document.getElementById('ai-pv-display').textContent = ap;
+
+    // Comeback badge
+    document.getElementById('comeback-badge').classList.toggle('active', pp < 400);
+
+    // Deck/graveyard displays
+    this.renderPileInfo('player', s.player);
+    this.renderPileInfo('ai', s.ai);
+
+    // Market
+    this.renderMarket();
+
+    // AI hand
+    const aiH = document.getElementById('ai-hand-display');
+    aiH.innerHTML = '';
+    const shown = Math.min(s.ai.hand.length, 8);
+    for(let i=0;i<shown;i++){const d=document.createElement('div');d.className='ai-card-back';aiH.appendChild(d);}
+
+    // Fields
+    this.renderField('player');
+    this.renderField('ai');
+
+    // Hand
+    this.renderHand();
+
+    // Buttons
+    const isPlayerTurn = s.turn === 'player' && !s.processing;
+    document.getElementById('btn-battle').disabled = !isPlayerTurn || s.phase !== 'main' || s.turnCount <= 3;
+    document.getElementById('btn-end').disabled = !isPlayerTurn;
+    document.getElementById('btn-mulligan').disabled = !isPlayerTurn || this.mulliganUsed || s.player.hand.length > 3;
+
+    // Phase badge
+    const pb = document.getElementById('phase-badge');
+    if(s.turn === 'ai') { pb.textContent = 'Oponente'; pb.className = 'phase-badge enemy'; }
+    else if(s.phase === 'battle') { pb.textContent = '⚔ Batalla'; pb.className = 'phase-badge battle'; }
+    else { pb.textContent = 'Principal'; pb.className = 'phase-badge main'; }
+
+    document.getElementById('turn-label').textContent = s.turn === 'player' ? 'Tu Turno' : 'Oponente';
+  },
+
+  renderPileInfo(owner, ps) {
+    const el = document.getElementById(`${owner}-deck-area`);
+    el.innerHTML = `
+      <div class="mini-pile"><div class="pile-box deck" style="color:var(--gold-light)">${ps.deck.length}</div><div class="pile-label">Mazo</div></div>
+      <div class="mini-pile"><div class="pile-box grave">${ps.graveyard.length}</div><div class="pile-label">Desc.</div></div>
+    `;
+  },
+
+  renderMarket() {
+    const m = this.state.market;
+    const pips = document.getElementById('market-pips');
+    pips.innerHTML = '';
+    const emojis = ['☕','☕','☕','☕','☕'];
+    for(let i=1;i<=5;i++){
+      const p = document.createElement('div');
+      p.className = 'market-pip' + (i<=m?' active':'');
+      p.textContent = i<=m ? '☕' : '';
+      pips.appendChild(p);
+    }
+    const mv = document.getElementById('market-value');
+    mv.textContent = `☕${m}`;
+    mv.style.color = m >= 4 ? '#7EC87E' : m <= 2 ? '#E55' : 'var(--gold-light)';
+  },
+
+  renderField(owner) {
+    const s = this.state;
+    const fieldEl = document.getElementById(`${owner}-field`);
+    s[owner].fincas.forEach((finca, idx) => {
+      const slot = fieldEl.querySelector(`[data-index='${idx}']`);
+      slot.innerHTML = '';
+      slot.className = 'finca-slot';
+
+      if(!finca) {
+        if(owner === 'player' && s.turn === 'player' && s.phase === 'main' && this.selectedHandIndex !== null) {
+          slot.classList.add('valid-target', 'empty-hint');
+        }
+        return;
+      }
+
+      if(this.attackerRef && this.attackerRef.owner === 'player' && this.attackerRef.index !== idx) {
+        if(owner === 'ai') slot.classList.add('valid-attack-target');
+      }
+      if(this.attackerRef && this.attackerRef.owner === 'player' && owner === 'player' && idx === this.attackerRef.index) {
+        slot.classList.add('selected-attacker');
+      }
+
+      // Highlight valid play targets for hand card
+      if(owner === 'player' && s.turn === 'player' && s.phase === 'main' && this.selectedHandIndex !== null && finca) {
+        const card = CARDS[s.player.hand[this.selectedHandIndex]];
+        if(card && card.type !== 'Origen' && card.type !== 'Acción' && !finca.faceDown) {
+          const canAttach = this.canAttach(finca, card);
+          if(canAttach) slot.classList.add('valid-target');
+        }
+      }
+
+      if(finca.mode === 'tueste') slot.classList.add('mode-tueste');
+      else slot.classList.add('mode-cosecha');
+
+      if(finca.faceDown) {
+        slot.innerHTML = `<div class="finca-facedown"><div class="facedown-icon">☕</div><div class="facedown-def">DEF 15</div></div>`;
+        return;
+      }
+
+      const os = s[owner];
+      const effAtk = finca.atk + os.tempAtk;
+      const effDef = Math.max(0, finca.def - os.tempDef);
+      const comebackBonus = (owner === 'player' && s.player.pv < 400) ? 15 : 0;
+      const displayAtk = effAtk + comebackBonus;
+      const displayDef = effDef + (finca.rainBonus||0);
+
+      const fusion = finca.fusionId ? FUSIONS[finca.fusionId] : null;
+      const nameDisplay = fusion ? `<div class="finca-fusion-name">✨ ${fusion.name}</div>` : `<div class="finca-name">${CARDS[finca.base].name}</div>`;
+
+      const tags = finca.attachments.map(id => {
+        const c = CARDS[id];
+        const cls = c.type==='Variedad'?'variedad':c.type==='Beneficio'?'beneficio':'metodo';
+        return `<span class="tag ${cls}">${c.name.split(' ')[0]}</span>`;
+      }).join('');
+
+      const atkClass = os.tempAtk > 0 || comebackBonus > 0 ? 'atk buffed' : 'atk';
+      const defClass = os.tempDef > 0 ? 'def debuffed' : 'def';
+      const siphon = this.getSiphon(finca) > 0 ? `<span style="color:#b39ddb;font-size:0.55rem"> [Pen.10]</span>` : '';
+
+      const modeDisabled = !(owner==='player' && s.turn==='player' && s.phase==='main' && finca.canAttack);
+      const modeBtn = finca.canAttack ? `<button class="mode-btn ${finca.mode}" ${modeDisabled?'disabled':''} onclick="event.stopPropagation();G.toggleMode(${idx})">${finca.mode==='tueste'?'🔥 Tueste':'🌿 Cosecha'}</button>` : '';
+
+      const yemenBtn = (finca.base==='ori-yem' && owner==='player' && s.turn==='player' && s.phase==='main') ?
+        `<button class="mode-btn ${finca.yemenUsed?'cosecha':'tueste'}" style="font-size:0.55rem;margin-top:2px" ${finca.yemenUsed||s.player.pv<=50?'disabled':''} onclick="event.stopPropagation();G.yemenActivate(${idx})">💧${finca.yemenUsed?'(Usado)':'-50PV→Robar'}</button>` : '';
+
+      const abilityRow = fusion ? `<div class="finca-ability-row">${fusion.abilityText}</div>` : '';
+      const survivalRow = (finca.survivalBonus||0) > 0 ? `<div class="finca-ability-row">🏅 Survival +${finca.survivalBonus}</div>` : '';
+
+      slot.innerHTML = `
+        <div class="finca-content">
+          <div class="finca-header">${nameDisplay}${modeBtn}</div>
+          ${yemenBtn}
+          <div class="finca-tags">${tags}</div>
+          ${abilityRow}${survivalRow}
+          <div class="finca-stats-row">
+            <div class="stat"><div class="stat-label">ATK</div><div class="stat-value ${atkClass}">${displayAtk}${siphon}</div></div>
+            <div class="stat"><div class="stat-label">DEF</div><div class="stat-value ${defClass}">${displayDef}</div></div>
+          </div>
+        </div>`;
+    });
+  },
+
+  renderHand() {
+    const s = this.state;
+    const el = document.getElementById('hand-cards');
+    el.innerHTML = '';
+    s.player.hand.forEach((cardId, idx) => {
+      const card = CARDS[cardId];
+      const typeClass = card.type === 'Origen' ? 'card-origen' : card.type === 'Variedad' ? 'card-variedad' : card.type === 'Beneficio' ? 'card-beneficio' : card.type === 'Método' ? 'card-metodo' : 'card-accion';
+      const loteClass = card.lote ? 'card-lote' : '';
+      const selClass = this.selectedHandIndex === idx ? 'selected-hand' : '';
+      const canPlay = s.turn === 'player' && s.phase === 'main' && !s.processing;
+      const statsLine = card.type !== 'Acción' ? `<div class="hcard-stats"><span style="color:#FF8888">A${card.atk}</span><span style="color:#88BBFF">D${card.def}</span></div>` : `<div class="hcard-stats" style="color:var(--gold)">Efecto</div>`;
+
+      const div = document.createElement('div');
+      div.className = `hand-card ${typeClass} ${loteClass} ${selClass}`;
+      div.innerHTML = `
+        <div class="hcard-type">${card.type}</div>
+        ${card.ability ? '<div class="hcard-special">⭐</div>' : ''}
+        <div class="hcard-name">${card.name}</div>
+        ${statsLine}
+        <div class="hcard-tooltip">
+          <div class="tooltip-name">${card.name}</div>
+          <div class="tooltip-type">${card.type}</div>
+          <div class="tooltip-text">${card.text}</div>
+          ${card.type !== 'Acción' ? `<div class="tooltip-stats">ATK ${card.atk} / DEF ${card.def}</div>` : ''}
+        </div>
+      `;
+      if(canPlay) div.addEventListener('click', () => this.onHandCardClick(idx));
+      el.appendChild(div);
+    });
+  },
+
+  // ── INTERACTION ──
+  onHandCardClick(idx) {
+    const s = this.state;
+    if(s.turn !== 'player' || s.phase !== 'main' || s.processing) return;
+
+    if(this.selectedHandIndex === idx) {
+      this.selectedHandIndex = null;
+      this.setHint('');
+      this.render();
+      return;
+    }
+
+    this.selectedHandIndex = idx;
+    const card = CARDS[s.player.hand[idx]];
+
+    if(card.type === 'Acción') {
+      this.setHint(`⚡ ${card.name} — Toca aquí para activar`);
+      this.render();
+      // Auto-play actions with a confirm
+      setTimeout(() => {
+        if(this.selectedHandIndex === idx) {
+          s.player.hand.splice(idx, 1);
+          this.selectedHandIndex = null;
+          this.playAction(card.id, 'player');
+          this.setHint('');
+          this.render();
+        }
+      }, 600);
+      return;
+    }
+
+    this.setHint(`${card.name} — Toca un casillero para jugar`);
+    this.render();
+  },
+
+  onSlotClick(owner, idx) {
+    const s = this.state;
+    if(s.processing) return;
+
+    // Attack target selection
+    if(this.attackerRef) {
+      if(owner === 'ai') {
+        this.executeAttack(this.attackerRef, {owner:'ai', index:idx});
+      } else if(owner === 'player' && idx === this.attackerRef.index) {
+        this.cancelAction();
+      }
+      return;
+    }
+
+    // Player playing a card
+    if(owner === 'player' && s.turn === 'player' && s.phase === 'main' && this.selectedHandIndex !== null) {
+      const cardId = s.player.hand[this.selectedHandIndex];
+      const card = CARDS[cardId];
+      const finca = s.player.fincas[idx];
+
+      if(card.type === 'Origen') {
+        if(!finca || finca.faceDown) {
+          s.player.hand.splice(this.selectedHandIndex, 1);
+          this.selectedHandIndex = null;
+          this.playOrigen(cardId, idx, 'player');
+          this.setHint('');
+          this.render();
+        }
+      } else if(!finca) {
+        // Play face down
+        s.player.hand.splice(this.selectedHandIndex, 1);
+        this.selectedHandIndex = null;
+        this.playFaceDown(cardId, idx, 'player');
+        this.setHint('');
+        this.render();
+      } else if(!finca.faceDown && this.canAttach(finca, card)) {
+        s.player.hand.splice(this.selectedHandIndex, 1);
+        this.selectedHandIndex = null;
+        this.playAttachment(cardId, idx, 'player');
+        this.setHint('');
+        this.render();
+      }
+      return;
+    }
+
+    // Click own finca in battle to attack
+    if(owner === 'player' && s.turn === 'player' && s.phase === 'battle' && s.turnCount > 3 && !this.state.crisisActive) {
+      const finca = s.player.fincas[idx];
+      if(finca && !finca.faceDown && finca.canAttack && finca.mode === 'tueste' && !finca.hasAttacked) {
+        this.attackerRef = { owner:'player', index:idx };
+        this.setHint(`${this.fincaName(finca)} lista. Toca una finca enemiga o al oponente.`);
+        // Show direct attack option on AI PV area
+        document.getElementById('ai-pv-display').parentElement.parentElement.style.cursor = 'pointer';
+        document.getElementById('ai-pv-display').parentElement.parentElement.onclick = () => this.executeAttack(this.attackerRef, null);
+        this.render();
+      }
+      return;
+    }
+
+    this.cancelAction();
+  },
+
+  cancelAction() {
+    this.selectedHandIndex = null;
+    this.attackerRef = null;
+    document.getElementById('ai-pv-display').parentElement.parentElement.style.cursor = '';
+    document.getElementById('ai-pv-display').parentElement.parentElement.onclick = null;
+    this.setHint('');
+    this.render();
+  },
+
+  setHint(txt) {
+    document.getElementById('action-hint').textContent = txt;
+  },
+
+  // ── CARD PLAYING ──
+  canAttach(finca, card) {
+    if(!finca || finca.faceDown) return false;
+    const ad = finca.attachments.map(id => CARDS[id]);
+    const lim = { 'Variedad': this.state.player.arch === 'artesano' ? 4 : 3, 'Beneficio': 2, 'Método': 2 };
+    const count = ad.filter(c => c.type === card.type).length;
+    return (lim[card.type] || 0) > count;
+  },
+
+  playOrigen(cardId, idx, owner) {
+    const s = this.state;
+    const card = CARDS[cardId];
+    s[owner].fincas[idx] = {
+      base: cardId, attachments: [], atk:0, def:0,
+      canAttack:false, hasAttacked:false, mode:'cosecha',
+      fusionId:null, survivalBonus:0, yemenUsed:false,
+      rainBonus:0,
+    };
+    this.log(`${owner==='player'?'🌱 Fundás':'🤖 Oponente funda'} una Finca: ${card.name}`);
+    if(cardId==='ori-yem') this.log(`💧 Yemen Matari: pagá 50 PV por turno para robar.`);
+    this.applyInvestment(owner, idx);
+    this.recalc(owner, idx);
+  },
+
+  playFaceDown(cardId, idx, owner) {
+    this.state[owner].fincas[idx] = { faceDown:true, hiddenCard:cardId, atk:0, def:15 };
+    this.log(owner==='player' ? '🃏 Colocás una defensa temporal boca abajo.' : '🤖 Oponente coloca defensa boca abajo.');
+    this.applyInvestment(owner, idx);
+    this.render();
+  },
+
+  playAttachment(cardId, fincaIdx, owner) {
+    const finca = this.state[owner].fincas[fincaIdx];
+    const card = CARDS[cardId];
+    finca.attachments.push(cardId);
+    this.log(`${owner==='player'?'➕ Añadís':'🤖 Oponente añade'} ${card.name} a la finca.`);
+    if(cardId === 'var-gei') this.triggerGeisha(owner);
+    this.checkFusion(owner, fincaIdx);
+    this.recalc(owner, fincaIdx);
+  },
+
+  playAction(cardId, owner) {
+    const s = this.state;
+    const opp = owner==='player'?'ai':'player';
+    const card = CARDS[cardId];
+    s[owner].graveyard.push(cardId);
+    this.log(`⚡ ${owner==='player'?'Jugás':'Oponente juega'}: ${card.name}`);
+
+    switch(cardId) {
+      case 'acc-llu': s[opp].tempDef = 20; this.log('🌧 Defensa enemiga -20 este turno.'); break;
+      case 'acc-hum': s[owner].tempAtk = 20; this.log('☀️ Tus fincas +20 ATK este turno.'); break;
+      case 'acc-tos': this.drawCard(owner); this.drawCard(owner); break;
+      case 'acc-cos': s[owner].pv += 100; this.log('🍃 Recuperás 100 PV.'); break;
+      case 'acc-pla': {
+        let best=-1, bestVal=-1;
+        s[opp].fincas.forEach((f,i)=>{ if(f&&!f.faceDown&&f.atk>bestVal){bestVal=f.atk;best=i;} });
+        if(best>-1){ const f=s[opp].fincas[best]; s[opp].graveyard.push(...f.attachments); f.attachments=[]; this.recalc(opp,best); this.log(`🦟 Plaga: ${this.fincaName(f)} pierde todos sus anexos.`); }
+        else this.log('🦟 Plaga: sin objetivo.'); break;
+      }
+      case 'acc-mer': s.market = Math.min(5, s.market+1); this.log(`📈 Mercado sube a ☕${s.market}.`); break;
+      case 'acc-seg': s[owner].hasInsurance = true; this.log(`🛡 Seguro de Cosecha activado.`); break;
+    }
+    this.render();
+  },
+
+  applyInvestment(owner, idx) {
+    const used = this.state[owner].slotsUsed[idx];
+    const penalties = [50, 25, 12, 6]; // Reducida a la mitad
+    const penalty = penalties[used] || 0;
+    this.state[owner].slotsUsed[idx]++;
+    if(penalty > 0) {
+      this.state[owner].pv -= penalty;
+      this.log(`💰 Inversión: ${owner==='player'?'perdés':'oponente pierde'} ${penalty} PV.`);
+    }
+    this.render();
+  },
+
+  recalc(owner, idx) {
+    const finca = this.state[owner].fincas[idx];
+    if(!finca || finca.faceDown) return;
+    const all = [finca.base, ...finca.attachments].map(id => CARDS[id]);
+    let atk = all.reduce((s,c)=>s+c.atk,0);
+    let def = all.reduce((s,c)=>s+c.def,0);
+
+    // Arquetipo Terroir: +20 DEF en orígenes propios
+    if(owner === 'player' && this.state.player.arch === 'terroir') def += 20;
+    // Arquetipo Procesador: beneficios doble
+    if(owner === 'player' && this.state.player.arch === 'procesador') {
+      const extraBen = finca.attachments.filter(id=>CARDS[id].type==='Beneficio').reduce((s,id)=>s+CARDS[id].def+CARDS[id].atk,0);
+      atk += Math.floor(extraBen * 0.5);
+      def += Math.floor(extraBen * 0.5);
+    }
+
+    const types = new Set(all.map(c=>c.type));
+    const complete = types.has('Origen')&&types.has('Variedad')&&types.has('Beneficio')&&types.has('Método');
+
+    if(finca.fusionId){ atk += FUSIONS[finca.fusionId].bonusAtk; def += FUSIONS[finca.fusionId].bonusDef; }
+    else if(complete){ atk += 20; def += 20; }
+    if(finca.survivalBonus) { atk += finca.survivalBonus; def += finca.survivalBonus; }
+
+    finca.atk = atk;
+    finca.def = def;
+    finca.canAttack = all.some(c=>c.type==='Variedad');
+    if(!finca.canAttack) finca.mode = 'cosecha';
+    this.render();
+  },
+
+  checkFusion(owner, idx) {
+    const finca = this.state[owner].fincas[idx];
+    if(!finca||finca.faceDown||finca.fusionId) return;
+    const ids = new Set([finca.base, ...finca.attachments]);
+    for(const fid in FUSIONS) {
+      const f = FUSIONS[fid];
+      if([...f.recipe].every(id=>ids.has(id))) {
+        finca.fusionId = fid;
+        this.log(`✨ ¡FUSIÓN! ${f.name} — ${f.abilityText}`);
+        this.recalc(owner, idx);
+        break;
+      }
+    }
+  },
+
+  getSiphon(finca) {
+    if(!finca||!finca.attachments) return 0;
+    return finca.attachments.includes('met-sip') ? 10 : 0;
+  },
+
+  // ── SPECIAL ABILITIES ──
+  triggerGeisha(owner) {
+    this.log(`✨ Geisha Esmeralda: robás una carta extra.`);
+    setTimeout(() => this.drawCard(owner), 200);
+  },
+
+  yemenActivate(idx) {
+    const s = this.state;
+    const finca = s.player.fincas[idx];
+    if(!finca || finca.yemenUsed || s.player.pv <= 50) return;
+    finca.yemenUsed = true;
+    s.player.pv -= 50;
+    this.log(`💧 Yemen Matari: pagás 50 PV → robás una carta.`);
+    this.drawCard('player');
+    this.render();
+  },
+
+  // ── COMBAT ──
+  toggleMode(idx) {
+    const finca = this.state.player.fincas[idx];
+    if(!finca||finca.faceDown||!finca.canAttack) return;
+    finca.mode = finca.mode === 'cosecha' ? 'tueste' : 'cosecha';
+    this.log(`${this.fincaName(finca)} → modo ${finca.mode === 'tueste' ? '🔥 Tueste' : '🌿 Cosecha'}`);
+    this.render();
+  },
+
+  goToBattle() {
+    if(this.state.turn!=='player') return;
+    if(this.state.turnCount <= 3) { this.log('⚔ Turnos 1-3: paz obligatoria. Construí tus fincas.'); this.endPlayerTurn(); return; }
+    this.state.phase = 'battle';
+    this.log('⚔ Fase de Batalla. Tocá una finca en 🔥 Tueste para atacar.');
+    this.cancelAction();
+    this.render();
+  },
+
+  executeAttack(attackerRef, defenderRef) {
+    const s = this.state;
+    const aState = s[attackerRef.owner];
+    const dOwner = defenderRef ? defenderRef.owner : (attackerRef.owner==='player'?'ai':'player');
+    const dState = s[dOwner];
+    const attacker = aState.fincas[attackerRef.index];
+    if(!attacker||attacker.hasAttacked) return;
+    attacker.hasAttacked = true;
+
+    const comeback = (attackerRef.owner==='player' && s.player.pv < 400) ? 15 : 0;
+    const marketBonus = (attackerRef.owner==='player' && s.player.arch==='comerciante') ? Math.floor((s.market-3)*10) : 0;
+    const totalAtk = attacker.atk + aState.tempAtk + comeback + marketBonus;
+    const siphon = this.getSiphon(attacker);
+
+    if(marketBonus > 0) this.log(`📊 Comerciante: mercado ☕${s.market} da +${marketBonus} ATK.`);
+    if(comeback > 0) this.log(`🔥 Comeback: +15 ATK por estar en desventaja.`);
+
+    // Flash
+    this.flashDamage(dOwner);
+
+    if(!defenderRef) {
+      dState.pv -= totalAtk;
+      s[attackerRef.owner].vendidos += totalAtk;
+      this.log(`💥 ATAQUE DIRECTO: ${this.fincaName(attacker)} inflige ${totalAtk} PV.`);
+    } else {
+      const defender = dState.fincas[defenderRef.index];
+      if(defender.faceDown) {
+        const dmg = Math.max(0, totalAtk - 15);
+        this.destroyFinca(dOwner, defenderRef.index);
+        if(dmg > 0) { dState.pv -= dmg; this.log(`☕ Defensa revelada y destruida. Daño: ${dmg} PV.`); }
+        else this.log(`☕ Defensa boca abajo revelada y destruida. Sin daño extra.`);
+        this.checkAnaerobico(attackerRef.owner, attackerRef.index);
+      } else {
+        const effDef = Math.max(0, defender.def - dState.tempDef - siphon);
+        const defVal = defender.mode === 'tueste' ? defender.atk : effDef;
+        this.log(`⚔ ${this.fincaName(attacker)} (ATK ${totalAtk}) vs ${this.fincaName(defender)} (${defender.mode==='tueste'?'ATK':'DEF'} ${defVal})`);
+
+        if(totalAtk > defVal) {
+          const dmg = totalAtk - defVal;
+          dState.pv -= dmg;
+          s[attackerRef.owner].vendidos += dmg;
+          this.log(`💥 ¡Destruida! ${dmg} de daño extra a los PV.`);
+          this.destroyFinca(dOwner, defenderRef.index);
+          this.checkAnaerobico(attackerRef.owner, attackerRef.index);
+        } else if(totalAtk === defVal) {
+          this.log(`💫 ¡Empate! Ambas fincas se destruyen.`);
+          this.destroyFinca(attackerRef.owner, attackerRef.index);
+          this.destroyFinca(dOwner, defenderRef.index);
+        } else {
+          const rb = defVal - totalAtk;
+          aState.pv -= rb;
+          this.log(`🛡 Contraataque: ${rb} daño rebota. Finca atacante destruida.`);
+          this.destroyFinca(attackerRef.owner, attackerRef.index);
+        }
+      }
+    }
+
+    this.checkVictory();
+    document.getElementById('ai-pv-display').parentElement.parentElement.onclick = null;
+    document.getElementById('ai-pv-display').parentElement.parentElement.style.cursor = '';
+    this.attackerRef = null;
+    this.setHint('');
+    this.render();
+  },
+
+  checkAnaerobico(owner, idx) {
+    const finca = this.state[owner].fincas[idx];
+    if(finca && finca.attachments && finca.attachments.includes('ben-ana')) {
+      this.state[owner].pv += 50;
+      this.log(`♻️ Doble Fermentación: +50 PV por destruir.`);
+    }
+  },
+
+  destroyFinca(owner, idx) {
+    const s = this.state;
+    const finca = s[owner].fincas[idx];
+    if(!finca) return;
+    const cards = finca.faceDown ? [finca.hiddenCard] : [finca.base, ...finca.attachments];
+    s[owner].graveyard.push(...cards);
+
+    // Seguro de Cosecha
+    if(owner === 'player' && s.player.hasInsurance) {
+      s.player.pv += 80;
+      s.player.hasInsurance = false;
+      this.log(`🛡 Seguro de Cosecha activado: +80 PV de compensación.`);
+    }
+
+    // Comeback: robar carta al perder finca
+    if(owner === 'player') {
+      s.player.pv += 30;
+      this.drawCard('player', false);
+      this.log(`📋 Seguro básico: perdés una finca pero recuperás 30 PV y robás una carta.`);
+    }
+
+    s[owner].fincas[idx] = null;
+    this.render();
+  },
+
+  flashDamage(target) {
+    const el = document.getElementById('dmg-flash');
+    el.className = `damage-flash ${target==='player'?'player-hit':'ai-hit'}`;
+    setTimeout(() => el.classList.add('active'), 10);
+    setTimeout(() => el.classList.remove('active'), 600);
+  },
+
+  // ── TURNS ──
+  endPlayerTurn() {
+    const s = this.state;
+    if(s.turn!=='player'||s.processing) return;
+    this.log('— Fin de turno del jugador —');
+    s.turnCount++;
+    s.turn = 'ai';
+    s.phase = 'main';
+    s.player.tempAtk = 0;
+    s.player.tempDef = 0;
+    s.player.fincas.forEach(f => { if(f&&!f.faceDown){f.hasAttacked=false;f.yemenUsed=false;} });
+    this.cancelAction();
+    setTimeout(() => this.aiTurn(), 800);
+  },
+
+  // ── EVENTS ──
+  drawEvent() {
+    const ev = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+    const s = this.state;
+    const banner = document.getElementById('event-banner');
+    banner.innerHTML = `${ev.icon} <strong>${ev.name}:</strong> ${ev.text}`;
+    banner.classList.add('active');
+    setTimeout(() => banner.classList.remove('active'), 5000);
+
+    if(ev.marketDelta !== 0) s.market = Math.max(1, Math.min(5, s.market + ev.marketDelta));
+    s.crisisActive = false;
+    s.rainActive = false;
+    s.eventFreezeAfrica = 0;
+    s.eventFreezeAmericas = 0;
+
+    this.log(`📰 EVENTO: ${ev.name} — ${ev.text}`);
+
+    switch(ev.effect) {
+      case 'helada-africa': s.eventFreezeAfrica = 15; break;
+      case 'helada-americas': s.eventFreezeAmericas = 10; break;
+      case 'boom':
+        ['player','ai'].forEach(o => s[o].fincas.forEach(f => { if(f&&!f.faceDown) f.atk += 10; }));
+        break;
+      case 'broca':
+        ['player','ai'].forEach(o => {
+          const targets = s[o].fincas.filter(f=>f&&!f.faceDown&&f.attachments.some(id=>CARDS[id].type==='Beneficio'));
+          if(targets.length > 0) {
+            const t = targets[Math.floor(Math.random()*targets.length)];
+            const bi = t.attachments.findIndex(id=>CARDS[id].type==='Beneficio');
+            if(bi>-1) { s[o].graveyard.push(t.attachments.splice(bi,1)[0]); }
+          }
+        });
+        ['player','ai'].forEach(o => s[o].fincas.forEach((f,i)=>{ if(f&&!f.faceDown) this.recalc(o,i); }));
+        break;
+      case 'concurso': {
+        let pBest = 0, aBest = 0;
+        s.player.fincas.forEach(f=>{ if(f&&!f.faceDown) pBest = Math.max(pBest, f.atk+f.def); });
+        s.ai.fincas.forEach(f=>{ if(f&&!f.faceDown) aBest = Math.max(aBest, f.atk+f.def); });
+        if(pBest > aBest) { s.player.pv += 80; this.log(`🏆 Concurso: ¡Ganás! +80 PV.`); }
+        else if(aBest > pBest) { s.ai.pv += 80; this.log(`🏆 Concurso: el oponente gana.`); }
+        else this.log(`🏆 Concurso: empate, nadie gana PV.`);
+        break;
+      }
+      case 'crisis': s.crisisActive = true; this.log('📉 Crisis: nadie puede atacar este turno.'); break;
+      case 'temporada': this.drawCard('player'); this.drawCard('player'); this.drawCard('ai'); this.drawCard('ai'); break;
+      case 'ruta': {
+        const pOri = s.player.fincas.filter(f=>f&&!f.faceDown).length;
+        const aOri = s.ai.fincas.filter(f=>f&&!f.faceDown).length;
+        if(pOri > aOri) { s.player.pv += 100; this.log(`🚢 Ruta: más orígenes en juego. +100 PV.`); }
+        else if(aOri > pOri) { s.ai.pv += 100; }
+        break;
+      }
+      case 'lluvia': s.rainActive = true; s.player.fincas.forEach(f=>{ if(f&&f.mode==='cosecha') f.rainBonus = 15; }); break;
+      case 'caficultor':
+        if(s.player.arch === 'terroir') { s.player.pv += 120; this.log(`👨‍🌾 Caficultor: ¡Sos Terroir! +120 PV.`); }
+        else { s.player.pv += 40; this.log(`👨‍🌾 Caficultor: +40 PV.`); }
+        break;
+    }
+
+    // Apply region penalties
+    if(s.eventFreezeAfrica > 0) {
+      ['player','ai'].forEach(o => s[o].fincas.forEach((f,i)=>{ if(f&&!f.faceDown&&CARDS[f.base]?.region==='africa'){ f.def = Math.max(0,f.def-s.eventFreezeAfrica); } }));
+    }
+  },
+
+  // ── AI ──
+  aiTurn() {
+    const s = this.state;
+    this.log('— Turno del oponente —');
+    s.processing = true;
+    this.render();
+
+    if(s.turnCount > 1) this.drawCard('ai');
+    if(s.turnCount % 3 === 0) this.drawEvent();
+
+    setTimeout(() => {
+      this.aiUseYemen();
+      this.aiMainPhase();
+      if(s.turnCount > 3 && !s.crisisActive) this.aiBattlePhase();
+      else if(s.crisisActive) this.log('📉 Crisis: el oponente no puede atacar.');
+      setTimeout(() => this.endAiTurn(), 1200);
+    }, 1000);
+  },
+
+  aiUseYemen() {
+    const s = this.state;
+    s.ai.fincas.forEach((f, idx) => {
+      if(f&&!f.faceDown&&f.base==='ori-yem'&&!f.yemenUsed&&s.ai.pv>150&&s.ai.hand.length<4) {
+        f.yemenUsed = true;
+        s.ai.pv -= 50;
+        this.log('💧 Yemen (IA): -50 PV → roba.');
+        this.drawCard('ai');
+      }
+    });
+  },
+
+  aiMainPhase() {
+    const s = this.state;
+    let moved = true;
+    while(moved) {
+      moved = false;
+      // Play actions
+      const ac = s.ai.hand.find(id=>CARDS[id].type==='Acción');
+      if(ac) { s.ai.hand.splice(s.ai.hand.indexOf(ac),1); this.playAction(ac,'ai'); moved=true; continue; }
+      // Attach to existing fincas
+      for(let i=0;i<3;i++) {
+        const f = s.ai.fincas[i];
+        if(f&&!f.faceDown) {
+          const playable = s.ai.hand.filter(id=>{ const c=CARDS[id]; return (c.type!=='Origen'&&c.type!=='Acción')&&this.canAttachAI(f,c); });
+          if(playable.length>0) { const c=playable[0]; s.ai.hand.splice(s.ai.hand.indexOf(c),1); this.playAttachment(c,i,'ai'); moved=true; break; }
+        }
+      }
+      if(moved) continue;
+      // Found new finca
+      const ori = s.ai.hand.find(id=>CARDS[id].type==='Origen');
+      const empty = s.ai.fincas.findIndex(f=>f===null);
+      if(ori&&empty>-1) { s.ai.hand.splice(s.ai.hand.indexOf(ori),1); this.playOrigen(ori,empty,'ai'); moved=true; continue; }
+    }
+    // Face down
+    const empty = s.ai.fincas.findIndex(f=>f===null);
+    if(empty>-1) {
+      const c = s.ai.hand.find(id=>CARDS[id].type!=='Acción');
+      if(c) { s.ai.hand.splice(s.ai.hand.indexOf(c),1); this.playFaceDown(c,empty,'ai'); }
+    }
+  },
+
+  canAttachAI(finca, card) {
+    const ad = finca.attachments.map(id=>CARDS[id]);
+    const lim = {'Variedad':3,'Beneficio':2,'Método':2};
+    return (lim[card.type]||0) > ad.filter(c=>c.type===card.type).length;
+  },
+
+  aiBattlePhase() {
+    const s = this.state;
+    this.log('⚔ Oponente entra en batalla.');
+    s.ai.fincas.forEach((f,idx) => {
+      if(f&&!f.faceDown&&f.canAttack&&!f.hasAttacked) {
+        f.mode = 'tueste';
+        const best = this.aiFindTarget(f);
+        if(best !== null) this.executeAttack({owner:'ai',index:idx}, {owner:'player',index:best});
+        else if(!s.player.fincas.some(f=>f)) this.executeAttack({owner:'ai',index:idx}, null);
+      }
+    });
+  },
+
+  aiFindTarget(attacker) {
+    const s = this.state;
+    let best = null, bestVal = -1;
+    s.player.fincas.forEach((f,i) => {
+      if(!f) return;
+      const pdef = f.faceDown ? 15 : (f.mode==='tueste'?f.atk:f.def);
+      if(attacker.atk > pdef) { const v = f.atk||1; if(v>bestVal){bestVal=v;best=i;} }
+      else if(best===null) best = i;
+    });
+    return best;
+  },
+
+  endAiTurn() {
+    const s = this.state;
+    this.log('— Fin de turno del oponente —');
+    s.turnCount++;
+    s.processing = false;
+    s.turn = 'player';
+    s.phase = 'main';
+    s.ai.tempAtk = 0;
+    s.ai.tempDef = 0;
+    s.crisisActive = false;
+    s.ai.fincas.forEach(f => { if(f&&!f.faceDown){f.hasAttacked=false;f.yemenUsed=false;f.rainBonus=0;} });
+    s.player.fincas.forEach(f => { if(f&&!f.faceDown) f.rainBonus=0; });
+
+    // Survival bonus (Fusión especial)
+    s.player.fincas.forEach((f,i) => {
+      if(f&&!f.faceDown&&f.fusionId==='fus-origen'&&f.mode==='cosecha') {
+        f.survivalBonus = (f.survivalBonus||0)+15;
+        this.log(`✨ Taza de Origen Puro: +15 acumulativo.`);
+        this.recalc('player',i);
+      }
+    });
+
+    // Victory by quality: 3 fincas completas
+    const complete = s.player.fincas.filter(f=>f&&!f.faceDown&&f.fusionId||
+      (f&&!f.faceDown&&new Set([f.base,...(f.attachments||[])].map(id=>CARDS[id].type)).has('Origen')&&
+       new Set([f.base,...(f.attachments||[])].map(id=>CARDS[id].type)).has('Variedad')&&
+       new Set([f.base,...(f.attachments||[])].map(id=>CARDS[id].type)).has('Beneficio')&&
+       new Set([f.base,...(f.attachments||[])].map(id=>CARDS[id].type)).has('Método'))).length;
+    if(complete >= 3) { this.log('🌟 3 fincas completas — ¡victoria por calidad!'); this.endGame('player','quality'); return; }
+
+    // Victory by sales
+    if(s.player.vendidos >= 500) { this.log('📊 500 PV vendidos — ¡victoria por mercado!'); this.endGame('player','market'); return; }
+
+    this.drawCard('player');
+    this.log(`☕ Tu turno. Turno ${s.turnCount}.`);
+    this.render();
+  },
+
+  // ── MULLIGAN ──
+  openMulligan() {
+    const s = this.state;
+    if(this.mulliganUsed || s.player.hand.length > 3) return;
+    this.mulliganMarked = [];
+    const el = document.getElementById('mulligan-cards');
+    el.innerHTML = '';
+    s.player.hand.forEach((id, idx) => {
+      const card = CARDS[id];
+      const typeClass = card.type === 'Origen' ? 'card-origen' : card.type === 'Variedad' ? 'card-variedad' : card.type === 'Beneficio' ? 'card-beneficio' : card.type === 'Método' ? 'card-metodo' : 'card-accion';
+      const div = document.createElement('div');
+      div.className = `mulligan-card ${typeClass}`;
+      div.innerHTML = `<div style="font-size:0.5rem;opacity:0.6">${card.type}</div><div style="font-size:0.6rem;font-weight:700;color:var(--cream);line-height:1.2">${card.name}</div>`;
+      div.onclick = () => {
+        if(div.classList.contains('marked')) { div.classList.remove('marked'); this.mulliganMarked = this.mulliganMarked.filter(i=>i!==idx); }
+        else if(this.mulliganMarked.length < 3) { div.classList.add('marked'); this.mulliganMarked.push(idx); }
+      };
+      el.appendChild(div);
+    });
+    document.getElementById('modal-mulligan').classList.add('open');
+  },
+
+  confirmMulligan() {
+    if(this.mulliganMarked.length === 0) { this.closeMulligan(); return; }
+    const s = this.state;
+    const toRemove = [...this.mulliganMarked].sort((a,b)=>b-a);
+    toRemove.forEach(i => { s.player.deck.push(s.player.hand.splice(i,1)[0]); });
+    s.player.deck = this.shuffle(s.player.deck);
+    toRemove.forEach(() => this.drawCard('player', false));
+    this.mulliganUsed = true;
+    this.log(`🔄 Mulligan: cambiaste ${toRemove.length} carta${toRemove.length>1?'s':''}.`);
+    this.closeMulligan();
+  },
+
+  closeMulligan() { document.getElementById('modal-mulligan').classList.remove('open'); this.render(); },
+  closePlayModal() { document.getElementById('modal-play').classList.remove('open'); },
+
+  // ── LOG ──
+  log(msg) {
+    const el = document.getElementById('game-log');
+    const p = document.createElement('p');
+    p.textContent = `[${this.state?.turnCount||1}] ${msg}`;
+    el.appendChild(p);
+    el.scrollTop = el.scrollHeight;
+  },
+
+  // ── UTILS ──
+  drawCard(owner, log=true) {
+    const s = this.state;
+    if(s[owner].deck.length > 0) {
+      const id = s[owner].deck.pop();
+      s[owner].hand.push(id);
+      if(log) this.log(owner==='player' ? '🃏 Robás una carta.' : '🤖 Oponente roba.');
+    } else {
+      this.log(`${owner==='player'?'Tu mazo':'El mazo del oponente'} se agotó.`);
+      this.endGame(owner==='player'?'ai':'player', 'deck');
+    }
+    this.render();
+  },
+
+  fincaName(finca) {
+    if(!finca||finca.faceDown) return 'Defensa';
+    if(finca.fusionId) return FUSIONS[finca.fusionId].name;
+    return CARDS[finca.base].name.split(' ')[0] + ' #' + (finca.base.split('-')[1]||'');
+  },
+
+  checkVictory() {
+    const s = this.state;
+    if(s.player.pv <= 0) { this.endGame('ai','combat'); return; }
+    if(s.ai.pv <= 0) { this.endGame('player','combat'); return; }
+  },
+
+  endGame(winner, reason) {
+    this.state.processing = true;
+    const reasons = { combat:'por combate', quality:'por calidad de fincas', market:'por dominio del mercado', deck:'por agotamiento de mazo' };
+    const modal = document.getElementById('end-modal');
+    const icons = { player: winner==='player'?'🏆':'☕', ai: '😤' };
+
+    document.getElementById('end-icon').textContent = winner==='player' ? '🏆' : '☕';
+    document.getElementById('end-title').textContent = winner==='player' ? '¡Victoria!' : 'Derrota';
+    document.getElementById('end-text').textContent = winner==='player'
+      ? `Tu filosofía cafetera triunfó ${reasons[reason]||''}. Tu mazo habló por vos.`
+      : `El oponente fue más sólido hoy. Los principios se entrenan con cada partida.`;
+    document.getElementById('end-stats').textContent = this.state
+      ? `PV restantes: ${this.state.player.pv} · PV vendidos: ${this.state.player.vendidos} · Turno: ${this.state.turnCount}`
+      : '';
+
+    modal.classList.add('open');
+  },
+};
+</script>
+</body>
+</html>
